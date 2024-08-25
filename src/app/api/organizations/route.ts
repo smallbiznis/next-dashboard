@@ -7,18 +7,11 @@ import qs from "qs"
 
 export const dynamic = 'force-dynamic' // defaults to auto
 export async function GET(request: NextRequest) {
-
   const query = request.nextUrl.searchParams
   const {user} = await getIronSession<SessionData>(cookies(), sessionOption)
-  const q = qs.stringify({
-    size: 10,
-    page: 1,
-    organizationId: query.get("title")?.replace(" ", "-").trim()
-  })
-
-  const {data} = await api.get(`/v1/organizations?${q.toString()}`)
-  if (data.totalData > 0) return Response.json({ok: false})
-  return Response.json({ok: true})
+  const {status, data} = await api.get(`/v1/organizations/${query.get("title")?.toLowerCase().replace(" ", "-").trim()}`)
+  if (status > 200 && status < 500) return Response.json({ok: true})
+  return Response.json({ok: false})
 }
 
 export async function POST(request: Request) {
@@ -36,6 +29,8 @@ export async function POST(request: Request) {
       userId: user?.userId
     }
   })
+  if (orgResp.status > 200 && orgResp.status < 500) return Response.json(orgResp.data)
+
   const newOrg = orgResp.data
   const firstMember = {
     userId: user?.userId,

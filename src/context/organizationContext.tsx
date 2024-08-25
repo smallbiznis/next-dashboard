@@ -30,7 +30,7 @@ export const OrganizationProvider = ({ children } : { children:ReactNode }) => {
 
   useEffect(() => {
     fetchOrgs()
-  }, [fetchOrgs])
+  }, [])
 
   return (
     <OrganizationContext.Provider value={{loading, orgs, selected}}>
