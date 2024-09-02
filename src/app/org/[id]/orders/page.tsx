@@ -3,14 +3,16 @@ import { Page } from '@/components/page';
 import { useState } from 'react';
 import { faro } from '@grafana/faro-web-sdk';
 import { useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { useParams } from 'next/navigation';
 
-export default function Orders({params}:{params: {id:string}}) {
+export async function getStaticPaths() {
+  return {
+    paths: [],
+  }
+}
 
-  useEffect(() => {
-    if (faro.api) {
-      faro.api.setView({name: "LIST_ORDER"})
-    }
-  }, [])
+export default function Orders() {
 
   return (
     <Page title={'Orders'}>

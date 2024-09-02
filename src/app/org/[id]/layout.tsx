@@ -195,7 +195,9 @@ export default function OrganizationLayout({ params, children }: RootLayoutProps
 
         <div className='flex flex-col'>
           {headerMarkup}
-          <main className='flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6'>
+          <main
+            className='flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 max-h-screen overflow-y-auto'
+            >
             {children}
           </main>
         </div>

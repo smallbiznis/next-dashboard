@@ -10,12 +10,6 @@ export default function Applications({params}:{params: {id:string}}) {
 
   const [applications, setApplications] = useState<IApplication[]>([])
 
-  useEffect(() => {
-    if (faro.api) {
-      faro.api.setView({name: "LIST_APPLICATION"})
-    }
-  }, []);
-
   return (
     <Suspense fallback={<Loading />}>
       <Page title={'Apps'}>

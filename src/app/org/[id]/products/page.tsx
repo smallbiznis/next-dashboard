@@ -3,7 +3,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { DataTable } from '@/components/data-table';
 import { Page } from '@/components/page';
 import { faro } from '@grafana/faro-web-sdk';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { IProduct } from "@/types/product";
 
 import {
@@ -15,36 +15,28 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { ImageOff, MoreHorizontal } from "lucide-react"
+import { Check, CheckCircle, File, ImageOff, LoaderCircle, MoreHorizontal, PlusCircle } from "lucide-react"
 import Image from "next/image";
 import { randomUUID } from "crypto";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
+import { wait } from "@/lib/utils";
 
 export default function Products({params}:{params: {id:string}}) {
 
   const pathname = usePathname()
+  const router = useRouter()
+  const { toast } = useToast()
+  const [tab, setTab] = useState("*")
   const [products, setProducts] = useState<IProduct[]>([
     {
-      id: "abc123",
-      resources: [],
-      slug: "demo-product-1",
-      title: "demo product 1",
-      status: "active"
-    },
-    {
-      id: "abc124",
-      resources: [],
-      slug: "demo-product-1",
-      title: "demo product 1",
-      status: "active"
-    },
-    {
-      id: "abc125",
-      resources: [],
-      slug: "demo-product-1",
-      title: "demo product 1",
+      id: "123",
+      title: "ABC",
+      bodyHtml: "wow",
       status: "active"
     }
   ])
@@ -73,33 +65,26 @@ export default function Products({params}:{params: {id:string}}) {
       enableHiding: false,
     },
     {
+      accessorKey: "image",
+      header: "",
+      cell: ({ row }) => {
+        const product = row.original
+        return (
+          // <Image width={100} height={100} sizes="100vw" style={{
+          //   width: '100%',
+          //   height: 'auto'
+          // }} alt={product.title} src={"https://picsum.photos/200"} />
+          <image href={'https://picsum.photos/200'} />
+        )
+      }
+    },
+    {
       accessorKey: "product",
-      header: "Product",
+      header: "Name",
       cell: ({ row }) => {
         const product = row.original
         return (
           <div className="flex">
-            <div className="flex justify-center items-center">
-              {product.resources.length > 0 ? (
-                <div style={{ width: "50px", height: "50px", display: 'flex', flexDirection: 'column' }}>
-                  {/* <Image
-                    alt=""
-                    sizes="100vw"
-                    style={{
-                      width: '100%',
-                      height: 'auto',
-                    }}
-                    width={100}
-                    height={100}
-                    objectFit="fill"
-                    src={product.resources[0].imgUrl}
-                  /> */}
-                  <image
-                    href={product.resources[0].imgUrl}
-                  />
-                </div>
-              ) : <ImageOff className="w-[50px] h-[50px]" />}
-            </div>
             <div className="mx-4">
               <div className="font-medium">{product.title}</div>
               <div className="font-light">{product.title}</div>
@@ -139,21 +124,77 @@ export default function Products({params}:{params: {id:string}}) {
     }
   ]
 
-  useEffect(() => {
-    if (faro.api) {
-      faro.api.setView({name: "product_listing"})
-    }
+  const onTabChange = useCallback((value:string) => {
+    setTab(value)
   }, [])
+
+  const doExport = useCallback(() => {
+    const newToast = toast({
+      title: "Data Export Started",
+      description: "Processing your request.",
+      action: <LoaderCircle className="animate-spin" />
+    })
+
+    // wait(2000).then(() => newToast.update({
+    //   id: newToast.id,
+    //   title: "Data Processing",
+    //   description: "Your export is being generated.",
+    //   action: <LoaderCircle className="animate-spin" />
+    // }))
+
+    wait(3000).then(() => newToast.update({
+      id: newToast.id,
+      title: "Completed",
+      description: "Your export is being generated.",
+      action: <Check className="rounded-full bg-emerald-500" />
+    }))
+
+    wait(4000).then(() => newToast.dismiss)
+  }, [])
+
+  const doAddProduct = () => router.push(`${pathname}/new`)
 
   useEffect(() => {
 
   }, [])
+
+  const tabsMarkup = (
+    <div>
+      <Tabs value={tab} onValueChange={onTabChange}>
+        <div className="flex item-center">
+          <TabsList>
+            <TabsTrigger value="*">All</TabsTrigger>
+            <TabsTrigger value="active">Active</TabsTrigger>
+            <TabsTrigger value="inactive" className="hidden sm:flex">Inactive</TabsTrigger>
+            <TabsTrigger value="archived" className="hidden lg:flex">
+              Archived
+            </TabsTrigger>
+          </TabsList>
+          <div className="ml-auto flex items-center gap-2">
+            <Button size="sm" variant="outline" className="h-7 gap-1" onClick={doExport}>
+              <File className="h-3.5 w-3.5" />
+              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                Export
+              </span>
+            </Button>
+            <Button size="sm" className="h-7 gap-1" onClick={doAddProduct}>
+              <PlusCircle className="h-3.5 w-3.5" />
+              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                Add Product
+              </span>
+            </Button>
+          </div>
+        </div>
+        <TabsContent value={tab}>
+          <DataTable columns={columns} data={products} />
+        </TabsContent>
+      </Tabs>
+    </div>
+  )
 
   return (
-    <Page title={'Products'}>
-      <div className="overflow-x-auto">
-        <DataTable columns={columns} data={products} />
-      </div>
-    </Page>
+    <>
+      {tabsMarkup}
+    </>
   );
 }

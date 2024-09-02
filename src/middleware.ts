@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { SessionData, sessionOption } from './lib/session';
 import { cookies } from 'next/headers';
 import { getIronSession } from 'iron-session';
+import { faro } from '@grafana/faro-web-sdk';
 
 // This function can be marked `async` if using `await` inside
 export default async function middleware(req: NextRequest) {
@@ -47,7 +48,9 @@ export default async function middleware(req: NextRequest) {
   }
 
   const sess = await getIronSession<SessionData>(cookies(), sessionOption);
-  if (!sess.tokenInfo) return NextResponse.redirect(new URL("/api/signin", req.url));
+  if (!sess.tokenInfo) {
+    return NextResponse.redirect(new URL("/api/signin", req.url));
+  }
 }
 
 // See "Matching Paths" below to learn more

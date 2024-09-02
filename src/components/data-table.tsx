@@ -59,15 +59,15 @@ export function DataTable<TData, TValue>({
   })
 
   return (
-    <div>
+    <>
       <div className="rounded-md border">
-        <Table className='overflow-x-scroll'>
+        <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
+                {headerGroup.headers.map((header, index) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead key={header.id} className={index == 1 ? "hidden sticky z-[50] sm:table-cell" : ''}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -82,13 +82,13 @@ export function DataTable<TData, TValue>({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
+              table.getRowModel().rows.map((row, index) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className={index == 1 ? 'hidden sticky z-[50] sm:table-cell' : ''}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
@@ -122,6 +122,6 @@ export function DataTable<TData, TValue>({
           Next
         </Button>
       </div>
-    </div>
+    </>
   )
 }

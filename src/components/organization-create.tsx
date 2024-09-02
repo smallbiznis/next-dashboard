@@ -11,6 +11,7 @@ import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHe
 import { IOrganization } from '@/types/organization';
 import { useToast } from './ui/use-toast';
 import { usePathname, useRouter } from 'next/navigation';
+import { wait } from '@/lib/utils';
 
 export function OrganizationCreate() {
 
@@ -20,8 +21,6 @@ export function OrganizationCreate() {
   const [open, setOpen] = useState(false)
   const [disabled, setDisabled] = useState(true)
   const [organization, setOrganization] = useState<IOrganization | undefined>()
-
-  const wait = (duration:number=2000) => new Promise((resolve) => setTimeout(resolve, duration));
 
   const subject = new Subject();
   subject
@@ -70,11 +69,10 @@ export function OrganizationCreate() {
 
       if (res.status > 200) {
         newToast.update({
-          variant: "destructive",
+          id: newToast.id,
           title: "Failed!",
+          variant: "destructive",
           description: "Failed create a organization!",
-          action: <Check className='text-emerald-500' />,
-          id: newToast.id
         })
         wait().then(() => newToast.dismiss())
         return
@@ -87,8 +85,10 @@ export function OrganizationCreate() {
         action: <Check className='text-emerald-500' />,
       })
 
-      wait().then(() => newToast.dismiss())
-      wait(100).then(() => window.location.reload())
+      wait().then(() => {
+        newToast.dismiss()
+        window.location.reload()
+      })
     }).catch(error => {
       newToast.update({
         id: newToast.id,
@@ -136,7 +136,7 @@ export function OrganizationCreate() {
               maxLength={20}
               placeholder='Enter your organization name'
               className="col-span-3"
-              onKeyUp={onChange} 
+              onChange={onChange} 
               required={true}
             />
           </div>

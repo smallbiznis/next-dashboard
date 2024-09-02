@@ -15,12 +15,6 @@ export default function Home() {
     to: new Date(),
   })
 
-  useEffect(() => {
-    if (faro.api) {
-      faro.api.setView({name: "overview"}) 
-    }
-  }, [])
-
   return (
     <Page>
       <DatePickerWithRange date={date} setDate={setDate}  />

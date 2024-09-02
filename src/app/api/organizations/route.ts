@@ -34,13 +34,13 @@ export async function POST(request: Request) {
   const newOrg = orgResp.data
   const firstMember = {
     userId: user?.userId,
-    organizatinId: newOrg.organizationId,
+    organizatinId: newOrg.id,
     roles: ["ROLE_ADMIN"]
   }
 
-  await api.post(`/v1/members`, {
+  const memberResp = await api.post(`/v1/members`, {
     userId: user?.userId,
-    organizatinId: newOrg.organizationId,
+    organizatinId: newOrg.id,
     roles: ["ROLE_ADMIN"]
   })
 

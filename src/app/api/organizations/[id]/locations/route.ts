@@ -1,7 +1,4 @@
 import { api } from "@/lib/axios"
-import { SessionData, sessionOption } from "@/lib/session"
-import { getIronSession } from "iron-session"
-import { cookies } from "next/headers"
 import { NextRequest } from "next/server"
 import qs from "qs"
 
@@ -14,7 +11,7 @@ export async function GET(request: NextRequest) {
     page: 1
   })
 
-  const endpoint = `/v1/organizations/${query.get("id")}/apps?${pagination.toString()}`
+  const endpoint = `/v1/organizations/${query.get("id")}/locations?${pagination.toString()}`
   const {status, data} = await api.get(endpoint)
 
   return Response.json(data)

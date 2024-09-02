@@ -7,17 +7,45 @@ export interface IResource {
 
 }
 
+export interface IOption {
+
+  optionId?: string
+
+  optionName: string
+
+  optionValues: string[]
+
+}
+
+export interface IVariant {
+
+  variantId?: string
+
+  productId?: string
+
+  sku?: string
+
+  title?: string
+
+  price?: number
+
+  cost?: number
+
+  attributes?: string[]
+
+}
+
 export interface IProduct {
 
   id?: string
-
-  resources: IResource[]
 
   slug?: string
 
   title?: string
 
   bodyHtml?: string
+
+  options?: IOption[]
 
   status?: string
 

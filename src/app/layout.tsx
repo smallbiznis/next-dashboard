@@ -19,13 +19,17 @@ import {
   DropdownMenuItem
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { initSDKFaro } from '@/lib/faro-sdk';
 import { Metadata } from 'next';
 import Head from 'next/head';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { OrganizationProvider } from '@/context/organizationContext';
 import { Toaster } from '@/components/ui/toaster';
+import { NavigationEvents } from '@/components/navigation';
+import { faro } from '@grafana/faro-web-sdk';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 const fontSans = FontSans({
   subsets: ['latin'],
@@ -38,12 +42,25 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
 
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+
   useEffect(() => {
-    initSDKFaro()
-  }, []);
+    const url = `${pathname}`
+
+    // if (!faro.api) {
+    //   initSDKFaro()
+    // }
+
+    // if (faro.api) {
+    //   faro.api.setView({
+    //     name: url
+    //   })
+    // }
+  }, [pathname, searchParams])
 
   const userMenuMarkup = (
-    <div className='w-full flex flex-col justify-between my-2'>
+    <div className='w-[56px] max-h-screen flex flex-col justify-between my-2'>
       <div className='flex flex-col justify-center'>
         <div className='flex justify-center mb-2'>
           <DropdownMenu>
