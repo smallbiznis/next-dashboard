@@ -6,7 +6,11 @@ import Loading from './loading';
 import { IApplication } from '@/types/application';
 import { faro } from '@grafana/faro-web-sdk';
 
-export default function Application({ params }: { params: { id: string, appId: string } }) {
+export default function Application({
+  params,
+}: {
+  params: { id: string; appId: string };
+}) {
   const [application, setApplication] = useState<IApplication>();
 
   return (

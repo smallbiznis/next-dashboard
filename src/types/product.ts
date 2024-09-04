@@ -1,52 +1,61 @@
-
 export interface IResource {
+  imgUrl: string;
 
-  imgUrl: string
-
-  variantIds: string[]
-
+  variantIds: string[];
 }
 
 export interface IOption {
+  optionId?: string;
 
-  optionId?: string
+  optionName: string;
 
-  optionName: string
-
-  optionValues: string[]
-
+  optionValues: string[];
 }
 
 export interface IVariant {
+  variantId?: string;
 
-  variantId?: string
+  productId?: string;
 
-  productId?: string
+  sku?: string;
 
-  sku?: string
+  title?: string;
 
-  title?: string
+  price: number;
 
-  price?: number
+  cost: number;
 
-  cost?: number
+  attributes: string[];
 
-  attributes?: string[]
+  inventoryItems: IInventoryItem[];
+}
 
+export interface IInventoryItem {
+  inventoryItemId?: string;
+
+  locationId?: string;
+
+  variantId?: string;
+
+  totalStock?: number;
+
+  reservedStock?: number;
+
+  reorderStock?: number;
 }
 
 export interface IProduct {
+  id?: string;
 
-  id?: string
+  slug?: string;
 
-  slug?: string
+  title?: string;
 
-  title?: string
+  bodyHtml?: string;
 
-  bodyHtml?: string
+  options?: IOption[];
 
-  options?: IOption[]
+  variants?: IVariant[];
 
-  status?: string
-
+  status?: string;
 }

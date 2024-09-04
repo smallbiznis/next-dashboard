@@ -98,9 +98,7 @@ export function MobileNav(props: IMobileNavProps) {
       </div> */}
       {/* End Search Page */}
 
-      <div>
-        {/* <SelectComponent value={''} setValue={} /> */}
-      </div>
+      <div>{/* <SelectComponent value={''} setValue={} /> */}</div>
 
       {/* Dropdown Menu */}
       {/* <DropdownMenu>

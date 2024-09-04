@@ -5,10 +5,7 @@ import { Inter as FontSans } from 'next/font/google';
 import { cn } from '@/lib/utils';
 import { ThemeProvider } from '@/components/theme-provider';
 
-import {
-  CircleUser,
-  BellIcon
-} from 'lucide-react';
+import { CircleUser, BellIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -16,9 +13,9 @@ import {
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuItem
-} from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Suspense, useEffect } from 'react';
 import { initSDKFaro } from '@/lib/faro-sdk';
 import { Metadata } from 'next';
@@ -41,12 +38,11 @@ interface RootLayoutProps {
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
-
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const url = `${pathname}`
+    const url = `${pathname}`;
 
     // if (!faro.api) {
     //   initSDKFaro()
@@ -57,18 +53,20 @@ export default function RootLayout({ children }: RootLayoutProps) {
     //     name: url
     //   })
     // }
-  }, [pathname, searchParams])
+  }, [pathname, searchParams]);
 
   const userMenuMarkup = (
-    <div className='w-[56px] max-h-screen flex flex-col justify-between my-2'>
+    <div className='my-2 flex max-h-screen w-[56px] flex-col justify-between'>
       <div className='flex flex-col justify-center'>
-        <div className='flex justify-center mb-2'>
+        <div className='mb-2 flex justify-center'>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant='secondary' size='icon' className='rounded-full'>
                 <CircleUser className='h-5 w-5' />
                 <Avatar>
-                  <AvatarFallback aria-label='Taufik Triantono (taufiktriantono4@gmail.com)'>TT</AvatarFallback>
+                  <AvatarFallback aria-label='Taufik Triantono (taufiktriantono4@gmail.com)'>
+                    TT
+                  </AvatarFallback>
                 </Avatar>
                 <span className='sr-only'>Toggle user menu</span>
               </Button>
@@ -84,7 +82,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           </DropdownMenu>
         </div>
 
-        <div className='flex justify-center mb-2'>
+        <div className='mb-2 flex justify-center'>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant='secondary' size='icon' className='rounded-full'>
@@ -92,17 +90,15 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 <span className='sr-only'>Toggle user menu</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align='end'>
-              
-            </DropdownMenuContent>
+            <DropdownMenuContent align='end'></DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
-      <div className='flex justify-center items-center'>
+      <div className='flex items-center justify-center'>
         <ThemeToggle />
       </div>
     </div>
-  )
+  );
 
   return (
     <>

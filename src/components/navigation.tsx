@@ -1,16 +1,16 @@
-'use client'
- 
-import { useEffect } from 'react'
-import { usePathname, useSearchParams } from 'next/navigation'
-import { faro } from '@grafana/faro-web-sdk'
-import { initSDKFaro } from '@/lib/faro-sdk'
- 
+'use client';
+
+import { useEffect } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { faro } from '@grafana/faro-web-sdk';
+import { initSDKFaro } from '@/lib/faro-sdk';
+
 export function NavigationEvents() {
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
- 
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   useEffect(() => {
-    const url = `${pathname}?${searchParams}`
+    const url = `${pathname}?${searchParams}`;
 
     // if (!faro.api) {
     //   initSDKFaro()
@@ -21,7 +21,7 @@ export function NavigationEvents() {
     //     name: url
     //   })
     // }
-  }, [pathname, searchParams])
+  }, [pathname, searchParams]);
 
-  return (<></>)
+  return <></>;
 }

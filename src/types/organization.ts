@@ -1,14 +1,33 @@
-
 export interface IOrganization {
+  id?: string;
 
-  id?: string
+  organizationId?: string;
+
+  logoUrl?: string;
+
+  title?: string;
+
+  status?: string;
+}
+
+export interface ICountry {
+
+  countryCode?: string
+
+  countruName?: string
+
+  continent?: string
+
+}
+
+export interface ILocation {
+
+  locationId?: string
 
   organizationId?: string
 
-  logoUrl?: string
+  name?: string
 
-  title?: string
-
-  status?: string
+  country?: ICountry
 
 }

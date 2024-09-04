@@ -1,6 +1,5 @@
 'use client';
 
-// import '@/app/globals.css';
 import { Inter as FontSans } from 'next/font/google';
 import Link from 'next/link';
 import {
@@ -15,7 +14,13 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import { usePathname, useRouter } from 'next/navigation';
 import { Sheet, SheetTrigger, SheetContent } from '@/components/ui/sheet';
 import { useContext, useEffect, useState } from 'react';
@@ -30,17 +35,20 @@ const fontSans = FontSans({
 
 interface RootLayoutProps {
   params: {
-    id: string
-  }
+    id: string;
+  };
   children: React.ReactNode;
 }
 
-export default function OrganizationLayout({ params, children }: RootLayoutProps) {
+export default function OrganizationLayout({
+  params,
+  children,
+}: RootLayoutProps) {
   const pathname = usePathname();
-  const router = useRouter()
+  const router = useRouter();
 
-  const {orgs} = useContext(OrganizationContext)
-  const [selectOrg, setSelectOrg] = useState(params.id)
+  const { orgs } = useContext(OrganizationContext);
+  const [selectOrg, setSelectOrg] = useState(params.id);
   const [menus, setMenus] = useState([
     {
       path: '/org/{id}',
@@ -85,11 +93,11 @@ export default function OrganizationLayout({ params, children }: RootLayoutProps
   ]);
 
   useEffect(() => {
-    router.replace(`/org/${selectOrg}`)
-  }, [selectOrg])
+    router.replace(`/org/${selectOrg}`);
+  }, [selectOrg]);
 
   const navigationMenuMarkup = menus.map((m) => {
-    m.path = m.path.replace('{id}', selectOrg)
+    m.path = m.path.replace('{id}', selectOrg);
     return (
       <Link
         key={m.path}
@@ -135,10 +143,14 @@ export default function OrganizationLayout({ params, children }: RootLayoutProps
       </Sheet>
 
       <div>
-        <SelectComponent value={selectOrg} onValueChange={setSelectOrg} items={orgs} />
+        <SelectComponent
+          value={selectOrg}
+          onValueChange={setSelectOrg}
+          items={orgs}
+        />
       </div>
     </header>
-  )
+  );
 
   return (
     <>
@@ -146,10 +158,7 @@ export default function OrganizationLayout({ params, children }: RootLayoutProps
         <div className='hidden border-r bg-muted/40 md:block'>
           <div className='flex h-full max-h-screen flex-col gap-2'>
             <div className='flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6'>
-              <Link
-                href='/'
-                className='flex items-center gap-2 text-lg'
-              >
+              <Link href='/' className='flex items-center gap-2 text-lg'>
                 <div className='font-light'>
                   <span className='font-medium'>Small</span>Biznis
                 </div>
@@ -189,15 +198,12 @@ export default function OrganizationLayout({ params, children }: RootLayoutProps
                 </Card>
               </div>
             </div> */}
-
           </div>
         </div>
 
         <div className='flex flex-col'>
           {headerMarkup}
-          <main
-            className='flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 max-h-screen overflow-y-auto'
-            >
+          <main className='flex max-h-screen flex-1 flex-col gap-4 overflow-y-auto p-4 lg:gap-6 lg:p-6'>
             {children}
           </main>
         </div>

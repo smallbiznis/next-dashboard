@@ -7,7 +7,7 @@ import { faro } from '@grafana/faro-web-sdk';
 
 // This function can be marked `async` if using `await` inside
 export default async function middleware(req: NextRequest) {
-  if (process.env.NODE_ENV == "production") {
+  if (process.env.NODE_ENV == 'production') {
     // const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
     // const cspHeader = `
     //     default-src 'self';
@@ -25,15 +25,12 @@ export default async function middleware(req: NextRequest) {
     // const contentSecurityPolicyHeaderValue = cspHeader
     //   .replace(/\s{2,}/g, ' ')
     //   .trim()
-  
     // const requestHeaders = new Headers(request.headers)
     // requestHeaders.set('x-nonce', nonce)
-  
     // requestHeaders.set(
     //   'Content-Security-Policy',
     //   contentSecurityPolicyHeaderValue
     // )
-  
     // const response = NextResponse.next({
     //   request: {
     //     headers: requestHeaders,
@@ -43,20 +40,19 @@ export default async function middleware(req: NextRequest) {
     //   'Content-Security-Policy',
     //   contentSecurityPolicyHeaderValue
     // )
-  
-    // return response 
+    // return response
   }
 
   const sess = await getIronSession<SessionData>(cookies(), sessionOption);
   if (!sess.tokenInfo) {
-    return NextResponse.redirect(new URL("/api/signin", req.url));
+    return NextResponse.redirect(new URL('/api/signin', req.url));
   }
 }
 
 // See "Matching Paths" below to learn more
 export const config = {
   matcher: [
-    "/:path",
+    '/:path',
     {
       source: '/((?!api|_next/static|_next/image|favicon.ico).*)',
       missing: [
@@ -64,5 +60,5 @@ export const config = {
         { type: 'header', key: 'purpose', value: 'prefetch' },
       ],
     },
-  ]
+  ],
 };
