@@ -11,23 +11,19 @@ export interface IOrganization {
 }
 
 export interface ICountry {
+  countryCode?: string;
 
-  countryCode?: string
+  countruName?: string;
 
-  countruName?: string
-
-  continent?: string
-
+  continent?: string;
 }
 
 export interface ILocation {
+  locationId?: string;
 
-  locationId?: string
+  organizationId?: string;
 
-  organizationId?: string
+  name?: string;
 
-  name?: string
-
-  country?: ICountry
-
+  country?: ICountry;
 }

@@ -8,7 +8,7 @@ import qs from 'qs';
 export const dynamic = 'force-dynamic'; // defaults to auto
 export async function GET(request: Request) {
   const { user } = await getIronSession<SessionData>(cookies(), sessionOption);
-  const endpoint = `/users/${user?.user_id}}`;
+  const endpoint = `/users/${user?.userId}}`;
   const { status, data } = await api.get(endpoint);
   if (status > 200) {
     return Response.json(data);

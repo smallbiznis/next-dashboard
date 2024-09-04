@@ -1,8 +1,10 @@
 'use client';
 
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
   ChevronLeft,
+  CircleX,
+  DollarSign,
   GripVertical,
   Plus,
   PlusCircle,
@@ -57,6 +59,7 @@ import 'react-quill/dist/quill.snow.css';
 import { OrganizationContext } from '@/context/organizationContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ILocation } from '@/types/organization';
+import { useFormatter } from 'next-intl';
 
 const reorder = (list: any[], startIndex: number, endIndex: number) => {
   const result = Array.from(list);
@@ -65,31 +68,35 @@ const reorder = (list: any[], startIndex: number, endIndex: number) => {
   return result;
 };
 
-const validateInput = (value:string) : string => currency('id-ID', Number(value))
-const currency = (locale:string = 'id-ID', value:number) => new Intl.NumberFormat(locale, {
-  minimumFractionDigits: 0,
-  style: 'currency',
-  currency: 'IDR',
-  currencyDisplay: 'code',
-}).format(value).replace('IDR', '').trim()
+const currency = (locale: string = 'id-ID', value: number) =>
+  new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 2,
+    style: 'currency',
+    currency: 'IDR',
+    currencyDisplay: 'code',
+  })
+    .format(value)
+    .replace('IDR', '')
+    .trim();
 
 export default function Page() {
   const router = useRouter();
   const { action } = useParams();
 
   const { loading, getOrg } = useContext(OrganizationContext);
-  const org = getOrg()
+  const org = getOrg();
 
-  const [locations, setLocations] = useState<ILocation[]>([])
+  const [locations, setLocations] = useState<ILocation[]>([]);
+  const [inventories, setInventories] = useState<IInventoryItem[]>([]);
 
-  const fetchLocation = useCallback( async () => {
-    await fetch(`/api/organizations/${org?.id}/locations`).
-      then( async (res) => {
-        const {data} = await res.json()
-        if (res.status > 200 && res.status < 500) {}
-        setLocations(data)
-      })
-  }, [])
+  const fetchLocation = useCallback(async () => {
+    await fetch(`/api/organizations/${org?.id}/locations`).then(async (res) => {
+      const { data } = await res.json();
+      if (res.status > 200 && res.status < 500) {
+      }
+      setLocations(data);
+    });
+  }, []);
 
   const [product, setProduct] = useState<IProduct>({
     title: '',
@@ -181,12 +188,6 @@ export default function Page() {
     }
   };
 
-  const addOptionValue = (parentIndex: number) => {
-    const newOption = [...options];
-    newOption[parentIndex].optionValues.push('');
-    setOptions(newOption);
-  };
-
   const subject = new Subject();
   subject
     .asObservable()
@@ -205,7 +206,17 @@ export default function Page() {
     subject.next(newOption);
   };
 
-  const createVariant = function generateVariants(options: IOption[]) {
+  const onRemoveOptionValue = (
+    parentIndex: number,
+    childIndex: number
+  ) => {
+    const newOption = [...options]
+    newOption[parentIndex].optionValues.splice(childIndex, 1)
+    console.log("newOption: ", newOption)
+    setOptions(newOption)
+  }
+
+  const createVariant = async function generateVariants(options: IOption[]) {
     if (options.length === 0) return;
 
     // Start with the first option's values as the base for combinations
@@ -228,22 +239,43 @@ export default function Page() {
       variants = newVariants; // Update the variants with the new combinations
     }
 
-    const inventoryItems = locations.map((location) => {
-      return {
-        locationId: location.locationId,
-        totalStock: 0,
-        reorderStock: 0
-      }
-    })
+    // await Promise.all(locations.map((loc) => {
+    //   variants.map(() => {
+    //     newInventories.push({
+    //       locationId: loc.locationId,
+    //       organizationId: org?.id,
+    //       reorderStock: 0,
+    //       reservedStock: 0,
+    //     });
+    //   });
+    // }));
+
+    let inventory: IInventoryItem[] = [];
+    for (let i = 0; i < locations.length; i++) {
+      const newInventories: IInventoryItem[] = []
+      const loc = locations[i]
+      if (variants.length > 0) variants.map(() => {
+        newInventories.push({
+          locationId: loc.locationId,
+          organizationId: org?.id,
+          reorderStock: 0,
+          reservedStock: 0,
+        })
+      })
+
+      inventory = newInventories
+    }
+    console.log("inventory: ", inventory.length)
+    setInventories(inventory);
 
     let newVariants: IVariant[] = variants.map((variant) => {
       return {
         price: 0,
         cost: 0,
         attributes: variant,
-        inventoryItems,
-      }
-    })
+        inventoryItems: [],
+      };
+    });
 
     setVariants(newVariants);
   };
@@ -253,65 +285,109 @@ export default function Page() {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = useState({});
 
-  const columns: ColumnDef<RowData, any>[] = [
-    {
-      id: 'select',
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && 'indeterminate')
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label='Select all'
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label='Select row'
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
-      header: 'variants',
-      cell: ({ row }) => {
-        const variant = row.original as IVariant;
-        return (
-          <div className='flex'>
-            {/* @ts-ignore */}
-            {variant?.attributes?.toString().replaceAll(',', '/').toUpperCase()}
-          </div>
-        );
+  const columns = useMemo<ColumnDef<IVariant, any>[]>(
+    () => [
+      {
+        id: 'select',
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && 'indeterminate')
+            }
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label='Select all'
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label='Select row'
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
       },
-    },
-    {
-      id: 'price',
-      cell: ({ row }) => {
-        const variant = row.original as IVariant;
-        return (
-          <div>
-            <Input type='text' name='price' defaultValue={validateInput(`${variant.price}` || '0')} onChange={(e) => variant.price = Number.parseInt(e.target.value)} placeholder='e.g., 10.000' />
-          </div>
-        );
+      {
+        header: 'Variants',
+        cell: ({ row }) => {
+          const variant = row.original as IVariant;
+          return (
+            <div className='flex'>
+              {/* @ts-ignore */}
+              {variant?.attributes
+                ?.toString()
+                .replaceAll(',', '/')
+                .toUpperCase()}
+            </div>
+          );
+        },
       },
-    },
-    {
-      id: 'stock',
-      cell: ({ row }) => {
-        const variant = row.original as IVariant;
-        const inventoryItem = variant.inventoryItems[0]
-        return (
-          <div>
-            <Input type='number' name='stock' defaultValue={inventoryItem.totalStock} placeholder='e.g., 10' />
-          </div>
-        );
+      {
+        id: 'price',
+        header: 'Price',
+        cell: ({ cell, row }) => {
+          const index = cell.id.split('_')[0];
+          const variant = row.original as IVariant;
+          return (
+            <div className='relative'>
+              <Input
+                type='text'
+                name='price'
+                defaultValue={
+                  variant?.price ? `Rp ${variant.price}` : ''
+                }
+                onFocus={(e) => e.target.select()}
+                onContextMenu={(e) => e.preventDefault()}
+                onChange={(e) => {
+                  const { value } = e.target;
+                  let sanitizedValue = value.replace(/[^0-9.]/g, '');
+                  if (e.target.value == '') return;
+                  const newVariant = [...variants];
+                  console.log("cell: ", cell.id)
+                  console.log("cell: ", newVariant)
+                  newVariant[parseInt(index)].price = parseInt(sanitizedValue);
+                  setVariants(newVariant);
+                }}
+                placeholder='e.g., 10.000'
+              />
+            </div>
+          );
+        },
       },
-    },
-  ];
+      {
+        id: 'available',
+        header: 'Available',
+        cell: ({ cell, row }) => {
+          const index = cell.id.split('_')[0];
+          const inventory = inventories[parseInt(index)];
+          return (
+            <div className='relative'>
+              <Input
+                type='number'
+                name='stock'
+                min={0}
+                defaultValue={inventory?.totalStock}
+                onChange={(e) => {
+                  let value = parseInt(e.target.value);
+                  if (e.target.value == '') value = 0;
+                  const newInventories = [...inventories];
+                  console.log("cell: ", cell.id)
+                  newInventories[parseInt(index)].totalStock = value;
+                  setInventories(newInventories);
+                }}
+                placeholder='e.g., 10'
+              />
+            </div>
+          );
+        },
+      },
+    ],
+    []
+  );
 
   const table = useReactTable({
     data: variants,
@@ -330,33 +406,38 @@ export default function Page() {
   });
 
   const onSubmit = () => {
-    console.log('submit: ', variants);
+    console.log('variants: ', variants);
+    console.log('inventories: ', inventories);
   };
 
   useEffect(() => {
-    fetchLocation()
-  }, [])
+    fetchLocation();
+  }, []);
 
   useEffect(() => {
     // @ts-ignore
     createVariant(options);
   }, [options]);
 
+  useEffect(() => {
+    console.log("options: ", variants)
+  }, [variants])
+
   const OptionMarkup = (
-    <Card>
+    <Card id='AddOption'>
       <CardContent className='grid gap-3 pt-6'>
         <DragDropContext onDragEnd={onDragEnd}>
           <Droppable droppableId='options' type='OPTION'>
-            {(provided, snapshot) => (
+            {(provided) => (
               <div {...provided.droppableProps} ref={provided.innerRef}>
                 {options.map((option, optionIndex) => (
                   <Draggable
-                    key={`option-${optionIndex}`}
                     draggableId={`option-${optionIndex}`}
                     index={optionIndex}
                   >
-                    {(provided, snapshot) => (
+                    {(provided) => (
                       <div
+                        key={`option-${optionIndex}`}
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
@@ -385,13 +466,15 @@ export default function Page() {
                                   placeholder='e.g., Color'
                                 />
                                 {options.length > 1 && (
-                                  <button
+                                  <Button
                                     type='button'
-                                    className='flex-0 ml-2 text-destructive'
+                                    variant={'outline'}
+                                    size={'icon'}
+                                    className='ml-2'
                                     onClick={() => removeOption(optionIndex)}
                                   >
-                                    <Trash2 />
-                                  </button>
+                                    <Trash2 className='h-6 w-6' />
+                                  </Button>
                                 )}
                               </div>
                               <div>
@@ -399,8 +482,9 @@ export default function Page() {
                                   droppableId={`option-${optionIndex}`}
                                   type='OPTION_VALUES'
                                 >
-                                  {(provided, snapshot) => (
+                                  {(provided) => (
                                     <div
+                                      key={`option-${optionIndex}-drop`}
                                       {...provided.droppableProps}
                                       ref={provided.innerRef}
                                       className='grid gap-2'
@@ -411,12 +495,12 @@ export default function Page() {
                                             return (
                                               <>
                                                 <Draggable
-                                                  key={`option-${index}-values`}
                                                   draggableId={`option-${index}-values`}
                                                   index={index}
                                                 >
-                                                  {(provided, snapshot) => (
+                                                  {(provided) => (
                                                     <div
+                                                      key={`option-${index}-values`}
                                                       ref={provided.innerRef}
                                                       {...provided.draggableProps}
                                                       {...provided.dragHandleProps}
@@ -428,21 +512,29 @@ export default function Page() {
                                                         >
                                                           <GripVertical />
                                                         </button>
-                                                        <input
-                                                          type='text'
-                                                          name={`option-${index}`}
-                                                          defaultValue={value}
-                                                          minLength={1}
-                                                          className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-                                                          onChange={(e) =>
-                                                            onOptionValueChange(
-                                                              optionIndex,
-                                                              index,
-                                                              e.target.value
-                                                            )
-                                                          }
-                                                          placeholder='e.g., Black'
-                                                        />
+                                                        <div className='relative w-full'>
+                                                          <input
+                                                            type='text'
+                                                            name={`option-${index}-values`}
+                                                            defaultValue={value}
+                                                            minLength={1}
+                                                            className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pr-9 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+                                                            onChange={(e) =>
+                                                              onOptionValueChange(
+                                                                optionIndex,
+                                                                index,
+                                                                e.target.value
+                                                              )
+                                                            }
+                                                            placeholder='e.g., Black'
+                                                          />
+                                                          {option.optionValues
+                                                            .length > 1 && (
+                                                            <span className='absolute inset-y-0 right-0 flex items-center pr-2'>
+                                                              <CircleX className='text-gray-500' onClick={() => onRemoveOptionValue(optionIndex, index)} />
+                                                            </span>
+                                                          )}
+                                                        </div>
                                                       </div>
                                                     </div>
                                                   )}
@@ -457,7 +549,7 @@ export default function Page() {
                                                       draggableId={`option-${index + 1}-values`}
                                                       index={0}
                                                     >
-                                                      {(provided, snapshot) => (
+                                                      {(provided) => (
                                                         <div
                                                           ref={
                                                             provided.innerRef
@@ -472,21 +564,24 @@ export default function Page() {
                                                             >
                                                               <GripVertical />
                                                             </button>
-                                                            <input
-                                                              type='text'
-                                                              name={`option-0`}
-                                                              defaultValue={''}
-                                                              minLength={1}
-                                                              className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-                                                              onChange={(e) =>
-                                                                onOptionValueChange(
-                                                                  optionIndex,
-                                                                  index + 1,
-                                                                  e.target.value
-                                                                )
-                                                              }
-                                                              placeholder='e.g., Black'
-                                                            />
+                                                            <div className='relative w-full'>
+                                                              <input
+                                                                type='text'
+                                                                name={`option-${index + 1}-values`}
+                                                                defaultValue={''}
+                                                                minLength={1}
+                                                                className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pr-9 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+                                                                onChange={(e) =>
+                                                                  onOptionValueChange(
+                                                                    optionIndex,
+                                                                    index+1,
+                                                                    e.target
+                                                                      .value
+                                                                  )
+                                                                }
+                                                                placeholder='e.g., Black'
+                                                              />
+                                                            </div>
                                                           </div>
                                                         </div>
                                                       )}
@@ -502,7 +597,7 @@ export default function Page() {
                                           draggableId={`option-0-values`}
                                           index={0}
                                         >
-                                          {(provided, snapshot) => (
+                                          {(provided) => (
                                             <div
                                               ref={provided.innerRef}
                                               {...provided.draggableProps}
@@ -515,41 +610,27 @@ export default function Page() {
                                                 >
                                                   <GripVertical />
                                                 </button>
-                                                <input
-                                                  type='text'
-                                                  name={`option-0`}
-                                                  minLength={1}
-                                                  className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-                                                  onChange={(e) =>
-                                                    onOptionValueChange(
-                                                      optionIndex,
-                                                      0,
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  placeholder='e.g., Black'
-                                                />
+                                                <div className='relative w-full'>
+                                                  <input
+                                                    type='text'
+                                                    name={`option-0-values`}
+                                                    minLength={1}
+                                                    className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pr-9 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+                                                    onChange={(e) =>
+                                                      onOptionValueChange(
+                                                        optionIndex,
+                                                        0,
+                                                        e.target.value
+                                                      )
+                                                    }
+                                                    placeholder='e.g., Black'
+                                                  />
+                                                </div>
                                               </div>
                                             </div>
                                           )}
                                         </Draggable>
                                       )}
-                                      {/* <div className='flex justify-end'>
-                                        <Button
-                                          type='button'
-                                          size={'sm'}
-                                          onClick={(e) =>
-                                            addOptionValue(optionIndex)
-                                          }
-                                        >
-                                          <div className='flex items-center justify-center'>
-                                            <PlusCircle className='mr-2' />
-                                            <div className='text-center'>
-                                              Add value
-                                            </div>
-                                          </div>
-                                        </Button>
-                                      </div> */}
                                     </div>
                                   )}
                                 </Droppable>
@@ -594,7 +675,7 @@ export default function Page() {
     <div className='grid gap-4 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8'>
       <div className='grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8'>
         {/* Product Info */}
-        <Card x-chunk='dashboard-07-chunk-0'>
+        <Card x-chunk='dashboard-07-chunk-0' id='AddTitle'>
           <CardContent className='mt-6'>
             <div className='grid gap-6'>
               <div className='grid gap-3'>
@@ -704,14 +785,14 @@ export default function Page() {
   const LoadingMarkup = (
     <div className='grid gap-4 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8'>
       <div className='grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8'>
-        <Skeleton className={`w-full h-[268px] bg-gray-300`} />
-        <Skeleton className={`w-full h-[138px] bg-gray-300`} />
+        <Skeleton className={`h-[268px] w-full bg-gray-300`} />
+        <Skeleton className={`h-[138px] w-full bg-gray-300`} />
       </div>
       <div className='grid auto-rows-max items-start gap-4 lg:gap-8'>
-        <Skeleton className={`w-full h-[90px] bg-gray-300`} />
+        <Skeleton className={`h-[90px] w-full bg-gray-300`} />
       </div>
     </div>
-  )
+  );
 
   return (
     <div className='mx-auto grid w-full flex-1 auto-rows-max gap-4 sm:max-w-[59rem]'>

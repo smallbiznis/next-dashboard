@@ -35,7 +35,7 @@ export default function Home() {
 
   const selectOrg = (org: IOrganization) => {
     setSelected(org);
-    router.push(`/org/${org.organizationId}`)
+    router.push(`/org/${org.organizationId}`);
   };
 
   return (

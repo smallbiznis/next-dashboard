@@ -132,8 +132,8 @@ export default function Products({ params }: { params: { id: string } }) {
   ];
 
   const table = useReactTable({
-    data,
-    columns,
+    data: data,
+    columns: columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
@@ -216,6 +216,7 @@ export default function Products({ params }: { params: { id: string } }) {
           </div>
         </div>
         <TabsContent value={tab}>
+          {/* @ts-ignore */}
           <DataTable columns={columns} table={table} />
           {/* <div className="flex items-center justify-end space-x-2 py-4">
             <Button

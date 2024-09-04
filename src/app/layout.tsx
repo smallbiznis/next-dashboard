@@ -119,14 +119,16 @@ export default function RootLayout({ children }: RootLayoutProps) {
             disableTransitionOnChange
           >
             <OrganizationProvider>
-              <div vaul-drawer-wrapper=''>
-                <div className='grid min-h-screen w-full grid-cols-[1fr_56px]'>
-                  <div className='border-r bg-muted/40 md:block'>
-                    {children}
+              <Suspense>
+                <div vaul-drawer-wrapper=''>
+                  <div className='grid min-h-screen w-full grid-cols-[1fr_56px]'>
+                    <div className='border-r bg-muted/40 md:block'>
+                      {children}
+                    </div>
+                    {userMenuMarkup}
                   </div>
-                  {userMenuMarkup}
                 </div>
-              </div>
+              </Suspense>
               <Toaster />
             </OrganizationProvider>
           </ThemeProvider>

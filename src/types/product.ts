@@ -21,17 +21,19 @@ export interface IVariant {
 
   title?: string;
 
-  price: number;
+  price?: number;
 
-  cost: number;
+  cost?: number;
 
   attributes: string[];
 
-  inventoryItems: IInventoryItem[];
+  inventoryItems?: IInventoryItem[];
 }
 
 export interface IInventoryItem {
   inventoryItemId?: string;
+
+  organizationId?: string;
 
   locationId?: string;
 

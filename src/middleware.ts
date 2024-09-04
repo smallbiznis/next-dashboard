@@ -3,7 +3,8 @@ import type { NextRequest } from 'next/server';
 import { SessionData, sessionOption } from './lib/session';
 import { cookies } from 'next/headers';
 import { getIronSession } from 'iron-session';
-import { faro } from '@grafana/faro-web-sdk';
+import createMiddleware from 'next-intl/middleware';
+import { routing } from './i18n/routing';
 
 // This function can be marked `async` if using `await` inside
 export default async function middleware(req: NextRequest) {
@@ -48,6 +49,8 @@ export default async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/api/signin', req.url));
   }
 }
+
+// export default createMiddleware(routing)
 
 // See "Matching Paths" below to learn more
 export const config = {

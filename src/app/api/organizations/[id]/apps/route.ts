@@ -5,7 +5,7 @@ import qs from 'qs';
 export const dynamic = 'force-dynamic'; // defaults to auto
 export async function GET(
   request: NextRequest,
-  { params } : { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   const query = request.nextUrl.searchParams;
   const pagination = qs.stringify({

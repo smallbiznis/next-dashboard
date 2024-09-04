@@ -27,6 +27,7 @@ export function SelectComponent({ value, onValueChange, items }: SelectProps) {
           {items.map((item) => {
             // @ts-ignore
             return (
+              // @ts-ignore
               <SelectItem key={item.organizationId} value={item.organizationId}>
                 {item.title}
               </SelectItem>
